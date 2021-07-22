@@ -4,7 +4,7 @@ import time
 
 sys.stdin.flush()
 
-timeDesired = 5 #in seconds
+timeDesired = 10 #in seconds
 tTot = 0
 t0G = 0
 t0A = 0
