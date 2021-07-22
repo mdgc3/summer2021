@@ -1,40 +1,50 @@
-from subprocess import Popen, PIPE
 import sys
-
-BUF_SIZE = 37
+#from time 
+import time
 
 sys.stdin.flush()
 
-for line in sys.stdin:
-	print("p")
-	sensor_bytes = sys.stdin.readline()
-	print(str(line))
+timeDesired = 5 #in seconds
+tTot = 0
+t0G = 0
+t0A = 0
+t0E = 0
+done = False
 
+start = time.time()
+time.clock()
+while True:
+	for line in sys.stdin:
+		#print(line[0], end="") #uncomment if not printing whole line
+		tTot = time.time() - start #for time limit, but real code does not need
+		#print(round(tTot)) #was for checking time stopping
+		if (line[0] == "G"):
+			if round(tTot) > timeDesired: #for time limit, but real code does not need
+				done = True
+				break
+			tG = time.time()
+			#print(round(1.0 / (tG - t0G))) #Hz
+			print(tG - t0G)
+			print(line)
+			t0G = tG
+		elif line[0] == "A":
+			if round(tTot) > timeDesired: #for time limit, but real code does not need
+				done = True
+				break
+			tA = time.time()
+			#print(round(1.0 / (tA - t0A))) #Hz
+			print(tA - t0A)
+			print(line)
+			t0A = tA	
+		elif line[0] == "E":
+			if round(tTot) > timeDesired: #for time limit, but real code does not need
+				done = True
+				break
+			tE = time.time()
+			#print(round(1.0 / (tE - t0E))) #Hz
+			print(tE - t0E)
+			print(line)
+			t0E = tE
+	if done: break
+	
 
-
-# t=0 
-
-# def exec(*args):
-	# with Popen(args, stdout=PIPE) as proc:
-		# while proc.poll() is None:
-			# t = t+1
-			# print(proc.stdout.read(40))
-		# print(proc.stdout.read())
-		# print(t)
-
-
-# p = Popen(cmd, stdout=PIPE, stderr=PIPE)
-# while p.poll() is None:
-	# txt = p.stdout.read().decode("utf-8")
-	# result += txt
-	# print(result)
-
-
-#for line in iter(p.stdout.readline,""):
-#	print(line)
-
-
-# network_data = 'data from the network goes here'
-# p = subprocess.Popen(['cBNO080.c', 'optional', 'arguments'], 
-                     # stdin=subprocess.PIPE)
-# p.stdin.write(network_data)

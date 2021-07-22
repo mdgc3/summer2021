@@ -48,7 +48,7 @@
 #define NULL 0
 #endif
 
-#define BUF_SIZE 37
+#define BUF_SIZE 27
 
 #define DEGREES_TO_RADIANS_MULTIPLIER 0.017453 
 #define RADIANS_TO_DEGREES_MULTIPLIER 57.29578
@@ -148,8 +148,9 @@ void sig_handler(int signum) {
 
 int main(int argc, char const *argv[]){
 
-    for(uint32_t i=0; i<sizeof(SEQUENCENUMBER); i++) SEQUENCENUMBER[i] = 0;
-    
+    //for(uint32_t i=0; i<sizeof(SEQUENCENUMBER); i++) SEQUENCENUMBER[i] = 0;
+    memset(SEQUENCENUMBER, 0, sizeof(SEQUENCENUMBER));
+
     struct sigaction sig_action;
     memset(&sig_action, 0, sizeof(struct sigaction));
     sig_action.sa_handler = sig_handler;
@@ -160,7 +161,7 @@ int main(int argc, char const *argv[]){
     // Argument to start function controls the rate of reports
     // See the start() function to control which reports are generated
     // This example has one report per second (which may be too slow) (not tested)
-    start(1);  
+    start(125);  
 
     while(!sig_exit){
         usleep(LOOPSLEEP);
@@ -178,17 +179,23 @@ void handleEvent(void){
 }
 
 void parseEvent(void){
-    if(spiRead.channel == CHANNEL_REPORTS) {
+    /*if(spiRead.channel == CHANNEL_REPORTS) {
         switch(spiRead.buffer[5]) {
-            case SENSOR_REPORTID_GAME_ROTATION_VECTOR:                  parseGameRotationVector(); break;
-            case SENSOR_REPORTID_ARVR_STABILIZED_ROTATION_VECTOR:       parseStabilisedRotationVector(); break;
-            case SENSOR_REPORTID_ARVR_STABILIZED_GAME_ROTATION_VECTOR:  parseStabilisedGameRotationVector(); break;
-            case SENSOR_REPORTID_GYROSCOPE_CALIBRATED:                  parseCalibratedGyroscope(); break;
             case SENSOR_REPORTID_ACCELEROMETER:                         parseAccelerometer(); break;
-            case SENSOR_REPORTID_LINEAR_ACCELERATION:                   parseLinearAccelerometer(); break;
-            case SENSOR_REPORTID_STABILITY_CLASSIFIER:                  parseStability(); break;
+            case SENSOR_REPORTID_ARVR_STABILIZED_GAME_ROTATION_VECTOR:  //parseStabilisedGameRotationVector(); break;
+            case SENSOR_REPORTID_GYROSCOPE_CALIBRATED:                  //parseCalibratedGyroscope(); break;
+            case SENSOR_REPORTID_GAME_ROTATION_VECTOR:                  //parseGameRotationVector(); break;
+            case SENSOR_REPORTID_ARVR_STABILIZED_ROTATION_VECTOR:       //parseStabilisedRotationVector(); break;
+            case SENSOR_REPORTID_LINEAR_ACCELERATION:                   //parseLinearAccelerometer(); break;
+            case SENSOR_REPORTID_STABILITY_CLASSIFIER:                  break; //parseStability(); break;
             default: printf("Unhandled report event: CHANNEL: %02X, SEQUENCE: %02X BYTES: %02X, %02X, %02X, %02X, %02X, %02X, %02X, %02X, %02X\n", spiRead.channel, spiRead.sequence, spiRead.buffer[0], spiRead.buffer[1], spiRead.buffer[2], spiRead.buffer[3], spiRead.buffer[4], spiRead.buffer[5], spiRead.buffer[6], spiRead.buffer[7], spiRead.buffer[8]);
         }
+        return;
+    }*/
+
+    if (spiRead.channel == CHANNEL_REPORTS 
+        && spiRead.buffer[5] == SENSOR_REPORTID_ACCELEROMETER) {
+        parseAccelerometer();
         return;
     }
 
@@ -287,7 +294,13 @@ void parseGyroIntegratedRotationVector(void){
     gyroIntegratedRotationVectorData.lastYRate = Gy;
     gyroIntegratedRotationVectorData.lastZRate = Gz;
 
-    printf("Gyro Integrated Rotation Vector. R:%+07.1f, P:%+07.1f, Y:%+07.1f, GX:%+07.1f, GY:%+07.1f, GZ:%+07.1f\n", roll, pitch, yaw, Gx, Gy, Gz);
+    sprintf(buffer, "E,%+07.1f,%+07.1f,%+07.1f\n", roll, pitch, yaw);
+    fwrite(buffer, sizeof(unsigned char), strlen(buffer), stdout);
+    fflush(stdout);
+
+    sprintf(buffer, "G,%+07.1f,%+07.1f,%+07.1f\n", Gx, Gy, Gz);
+    fwrite(buffer, sizeof(unsigned char), strlen(buffer), stdout);
+    fflush(stdout);
 }
 
 void parseGameRotationVector(void){
@@ -357,10 +370,10 @@ void parseGameRotationVector(void){
     gameRotationVectorData.lastPitch = pitch;
     gameRotationVectorData.lastYaw = yaw;
 
-    //printf("Game Rotation Vector.  S: %d R:%+07.1f, P:%+07.1f, Y:%+07.1f\n", status, roll, pitch, yaw);
+    //printf("Game Rotation Vector.  EU: %d R:%+07.1f, P:%+07.1f, Y:%+07.1f\n", status, roll, pitch, yaw);
 
-    sprintf(buffer, "S: %d R:%+07.1f, P:%+07.1f, Y:%+07.1f\n", status, roll, pitch, yaw);
-    fwrite(buffer, sizeof(unsigned char), strlen(buffer), stdout);
+    printf(buffer, "S: %d R:%+07.1f, P:%+07.1f, Y:%+07.1f\n", status, roll, pitch, yaw);
+    //fwrite(buffer, sizeof(unsigned char), strlen(buffer), stdout);
 }
 
 void parseLinearAccelerometer(void){
@@ -387,7 +400,8 @@ void parseLinearAccelerometer(void){
     linearAccelerometerData.lastY = Ay;
     linearAccelerometerData.lastZ = Az;
     
-    printf("Lin. Accel.  S: %d X:%+07.3f, Y:%+07.3f, Z:%+07.3f\n", status, Ax, Ay, Az);
+    sprintf(buffer, "L,%+07.3f,%+07.3f,%+07.3f\n", Ax, Ay, Az);
+    fwrite(buffer, sizeof(unsigned char), strlen(buffer), stdout);
 }
 
 void parseAccelerometer(void){
@@ -414,7 +428,8 @@ void parseAccelerometer(void){
     accelerometerData.lastY = Ay;
     accelerometerData.lastZ = Az;
     
-    printf("Accel. S: %d X:%+07.3f, Y:%+07.3f, Z:%+07.3f\n", status, Ax, Ay, Az);
+    sprintf(buffer, "A,%+07.3f,%+07.3f,%+07.3f\n", Ax, Ay, Az);
+    fwrite(buffer, sizeof(unsigned char), strlen(buffer), stdout);
 }
 
 void parseCalibratedGyroscope(void){
@@ -757,14 +772,14 @@ void start(uint32_t dataRate){ // set datarate to zero to stop sensors
 // There are quite a few other reports available too (but this program does not
 // handle them).
 // Read the datasheet for more details.
-    configureFeatureReport(SENSOR_REPORTID_GAME_ROTATION_VECTOR, odrPeriodMicrosecs); // this is the interval between reports, expressed in microseconds
-    gameRotationVectorData.requestedInterval=odrPeriodMicrosecs; 
+    /*configureFeatureReport(SENSOR_REPORTID_GAME_ROTATION_VECTOR, odrPeriodMicrosecs); // this is the interval between reports, expressed in microseconds
+    gameRotationVectorData.requestedInterval=odrPeriodMicrosecs;*/ 
     
-    configureFeatureReport(SENSOR_REPORTID_GYROSCOPE_CALIBRATED, odrPeriodMicrosecs);
-    gyroData.requestedInterval=odrPeriodMicrosecs;
+    /*configureFeatureReport(SENSOR_REPORTID_GYROSCOPE_CALIBRATED, odrPeriodMicrosecs);
+    gyroData.requestedInterval=odrPeriodMicrosecs;*/
 
-    configureFeatureReport(SENSOR_REPORTID_LINEAR_ACCELERATION, odrPeriodMicrosecs);
-    linearAccelerometerData.requestedInterval=odrPeriodMicrosecs;
+    /*configureFeatureReport(SENSOR_REPORTID_LINEAR_ACCELERATION, odrPeriodMicrosecs);
+    linearAccelerometerData.requestedInterval=odrPeriodMicrosecs;*/
     
     configureFeatureReport(SENSOR_REPORTID_ACCELEROMETER, odrPeriodMicrosecs);
     accelerometerData.requestedInterval=odrPeriodMicrosecs;
@@ -772,8 +787,8 @@ void start(uint32_t dataRate){ // set datarate to zero to stop sensors
     configureFeatureReport(SENSOR_REPORTID_GYRO_INTEGRATED_ROTATION_VECTOR, odrPeriodMicrosecs);
     gyroIntegratedRotationVectorData.requestedInterval=odrPeriodMicrosecs;
 
-    configureFeatureReport(SENSOR_REPORTID_STABILITY_CLASSIFIER, 500000);// two reports per second
-    stabilityData.requestedInterval=500000;
+    /*configureFeatureReport(SENSOR_REPORTID_STABILITY_CLASSIFIER, 500000);// two reports per second
+    stabilityData.requestedInterval=500000;*/
 }
 
 void setupStabilityClassifierFrs(float threshold){
@@ -806,7 +821,7 @@ void setup(void){
     }
     bcm2835_spi_setBitOrder(BCM2835_SPI_BIT_ORDER_MSBFIRST);
     bcm2835_spi_setDataMode(BCM2835_SPI_MODE3);
-    bcm2835_spi_set_speed_hz(500000);
+    bcm2835_spi_set_speed_hz(1000000);
     bcm2835_spi_chipSelect(BCM2835_SPI_CS0);
     bcm2835_spi_setChipSelectPolarity(BCM2835_SPI_CS0, LOW);
 
