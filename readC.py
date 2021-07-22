@@ -24,6 +24,7 @@ while True:
 				break
 			tG = time.time()
 			#print(round(1.0 / (tG - t0G))) #Hz
+			print(tTot)
 			print(tG - t0G)
 			print(line)
 			t0G = tG
@@ -33,6 +34,7 @@ while True:
 				break
 			tA = time.time()
 			#print(round(1.0 / (tA - t0A))) #Hz
+			print(tTot)
 			print(tA - t0A)
 			print(line)
 			t0A = tA	
@@ -42,6 +44,7 @@ while True:
 				break
 			tE = time.time()
 			#print(round(1.0 / (tE - t0E))) #Hz
+			print(tTot)
 			print(tE - t0E)
 			print(line)
 			t0E = tE
