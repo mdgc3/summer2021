@@ -50,6 +50,21 @@ fclose(fileID);
 
 %% Organize and plot 
 
+avgG = mean(1./arrG(2,:));
+%minG = min(1./arrG(2,:));
+maxG = max(1./arrG(2,:));
+fprintf("Gyroscope \nMean: %f Hz, Max: %f Hz.\n", avgG, maxG)
+
+avgA = mean(1./arrA(2,:)); %should i not use all of it??? :/
+%minA = min(1./arrA(2,:));
+maxA = max(1./arrA(2,:)); %it does get really wild really fast
+fprintf("Rotational Accel \nMean: %f Hz, Max: %f Hz.\n", avgA, maxA)
+
+avgE = mean(1./arrE(2,:));
+%minE = min(1./arrE(2,:));
+maxE = max(1./arrE(2,:));
+fprintf("Game/Euler \nMean: %f Hz, Max: %f Hz.\n", avgE, maxE)
+
 figure(1)
 grid on
 hold on
